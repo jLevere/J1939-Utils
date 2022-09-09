@@ -24,7 +24,7 @@ to save to a log file:  `python stream_msgs.py pcan > log1.candump`
 
 ### graph_log.py
 
-This utility graphs the messages in a log file by address.  It can also print out messages that contain a pgn of interest for quick looks at groups of messages.
+This utility graphs the messages in a log file by address.  It can also print out messages that contain a pgn of interest for quick looks at groups of messages.  It depends on the messages collection of parsers so it should be run from the cloned directory.
 
 standard usage: `python graph_log.py path/to/candump 61440` <- list of pgns of interest seperated by spaces
 
