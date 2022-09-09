@@ -29,6 +29,36 @@ This utility graphs the messages in a log file by address.  It can also print ou
 
 standard usage: `python graph_log.py path/to/candump 61440` <- list of pgns of interest seperated by spaces
 
+Sample output:
+
+```
+NAME messages seen by src address:
+{}
+
+Breakdown of messages in log     
+src     da      pgn     msg_count
+=================================
+0
+|-------|
+        255
+         |
+         |--- 61424
+         |      |---- 25
+         |--- 68247
+         |      |---- 5
+         |--- 65570
+        18
+         |
+         |--- 0
+         |      |---- 2
+24
+|-------|
+        255
+         |
+         |--- 65235
+         |      |---- 3
+```
+
 
 
 ## Instalation for use:
