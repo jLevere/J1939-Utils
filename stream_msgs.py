@@ -79,5 +79,5 @@ def main(bustype: str = None):
 
 if __name__ == '__main__':
     bustype = sys.argv[1] if len(sys.argv) > 1 else None
-    print("no args: virutal, ex: python stream_msgs.py pcan")
+    print("if no args: virutal, ex usage: python stream_msgs.py pcan")
     main(bustype)
