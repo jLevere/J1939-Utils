@@ -23,7 +23,7 @@ def message_to_candump(msg: Message) -> tuple:
     """
 
     time = float(msg.timestamp)
-    channel = msg.channel
+    channel = msg.channel if msg.channel else 'can'
 
     # bytearray to string of hex
     data = ''.join('{:02x}'.format(x) for x in msg.data)
@@ -60,7 +60,7 @@ def main(bustype: str = None):
     count = 0
     try:
         print(
-            f"running with config: channel: {bus.channel_id}, channel_info: {bus.channel_info}")
+            f"running with config: channel: {bus.channel_id if hasattr(bus, 'channel_id') else 'can'}, channel_info: {bus.channel_info}")
         for msg in bus:
             count += 1
 
