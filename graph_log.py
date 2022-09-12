@@ -106,8 +106,6 @@ def validate_path(path:str) -> bool:
     except Exception as e:
         print(f"something is wrong: {e}")
         return False
-    
-
 
 
 def main(path:str, pgns_of_interest:list[str]):
