@@ -1,9 +1,11 @@
 """Streams mesages from pcan adaptor to screen with one simple command
 """
 import sys
+import binascii
 
 from can import ThreadSafeBus, Message
 from bitarray.util import int2ba, ba2hex
+
 
 
 config = {
@@ -26,8 +28,8 @@ def message_to_candump(msg: Message) -> tuple:
     channel = msg.channel if msg.channel else 'can'
 
     # bytearray to string of hex
-    data = ''.join('{:02x}'.format(x) for x in msg.data)
-
+    data = binascii.hexlify(msg.data).decode()
+    
     # all of this is to convert arbitration id to can_id
     # this can be either CBFF or CEFF type
     if msg.is_extended_id:
