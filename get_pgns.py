@@ -1,7 +1,12 @@
 """
 get_pgns.py
 
+prints a list of messages containing the specified PGNs to stdout.
+
+The object used to do this: Filter_PGNs can be imported and used with other things as well
+
     Running options:
+
         1) cmd args
             get_pgns.py path_to_logs pgn1 pgn3 pgn3...
 
