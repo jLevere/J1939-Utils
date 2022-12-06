@@ -5,7 +5,7 @@ Python utilities for interacting with J1939 and J1939 networks
 
 
 #### Notes:
-I like candump format for logs and messages therefor most of these utilites use it in some form. candump is roughly as follows:
+I like the candump format for logs and messages therefor most of these utils use it in some form. Candump is roughly as follows:
 
 (timestamp as float) channel can_id#data
 
