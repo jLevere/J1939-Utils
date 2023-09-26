@@ -29,6 +29,7 @@ The object used to do this: Filter_PGNs can be imported and used with other thin
 import sys
 import json
 import chardet
+import os
 
 from messages.j1939id import J1939ID
 
@@ -44,16 +45,16 @@ def get_msgs(path: str) -> list:
     """
     messages: list[tuple] = []
     try:
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             ch = chardet.detect(f.readline())
-            encoding = ch['encoding']
+            encoding = ch["encoding"]
 
-        with open(path, 'r', encoding=encoding) as f:
+        with open(path, "r", encoding=encoding) as f:
             for line in f:
                 line = line.strip()
-                time, channel, message = line.split(' ')
+                time, channel, message = line.split(" ")
 
-                time = time.replace(')', '').replace('(', '').strip()
+                time = time.replace(")", "").replace("(", "").strip()
                 time = float(time)
 
                 can_id, data = message.split("#")
@@ -76,11 +77,11 @@ def get_args() -> tuple:
         path = sys.argv[1]
         interest_pgns = sys.argv[2:]
 
-    elif conf_file():
-        with open(f"{__file__}.conf", 'r') as f:
-            conf = json.loads(f)
-        path = conf['path']
-        interest_pgns = conf['pgns']
+    elif os.path.isfile(f"{__file__[:-3]}.conf"):
+        with open(f"{__file__[:-3]}.conf", "r") as f:
+            conf = json.load(f)
+        path = conf["path"]
+        interest_pgns = conf["pgns"]
 
     else:
         path = input("enter path to candump file: ")
@@ -90,29 +91,7 @@ def get_args() -> tuple:
     return (path, interest_pgns)
 
 
-def conf_file() -> bool:
-    """check for presense of conf file
-
-    conf file format:
-        {
-            "path": "path/to/file",
-            "pgns: [
-                "pgn1",
-                "pgn2"
-            ]
-        }
-
-    Returns:
-        bool: conf file is present and working
-    """
-    try:
-        with open(f"{__file__}.conf", 'r', encoding='UTF-8') as f:
-            return True
-    except FileNotFoundError:
-        return False
-
-
-class PGN_Filter():
+class PGN_Filter:
     """Creates an iterator of messages filtered by their pgn values
 
     Args:
@@ -121,10 +100,9 @@ class PGN_Filter():
         messages: (list[tuple[timestamp, channel, can_id, data]]): list of messages to filter
     """
 
-    def __init__(self,
-                 interest_pgns: list,
-                 messages: list[tuple[float, str, J1939ID, str]]) -> None:
-
+    def __init__(
+        self, interest_pgns: list, messages: list[tuple[float, str, J1939ID, str]]
+    ) -> None:
         self._interest_pgns: list = interest_pgns
         self._messages: list[tuple[float, str, J1939ID, str]] = messages
 
@@ -146,7 +124,6 @@ class PGN_Filter():
 
 
 def main():
-
     path, interest_pgns = get_args()
 
     messages: tuple = get_msgs(path)
@@ -157,5 +134,5 @@ def main():
         print(result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
