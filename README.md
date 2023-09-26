@@ -21,7 +21,7 @@ J1939-Utils is a collection of Python utilities designed to facilitate communica
 - [Notes](#notes)
 - [License](#license)
 
-## current utilies:
+## Current Utilities:
 
 ### `get_pgns.py`
 
@@ -33,7 +33,7 @@ This utility filters messages in a candump file by Parameter Group Number (PGN) 
 get_pgns.py log1.candump 61440
 ```
 
-### stream_msgs.py
+### `stream_msgs.py`
 
 This utility streams received messages on a bus to the standard output in candump format. It can be attached to a virtual bus or a PCAN adapter.
 
@@ -49,7 +49,7 @@ to save to a log file:
 python stream_msgs.py pcan > log1.candump
 ```
 
-### graph_log.py
+### `graph_log.py`
 
 This utility graphs messages in a log file by address and can also print out messages that contain specific PGNs of interest. It relies on a collection of parsers, so it should be run from the cloned directory.
 
@@ -89,7 +89,7 @@ src     da      pgn     msg_count
          |      |---- 3
 ```
 
-## Instalation for use:
+## Installation:
 
 To get started with J1939-Utils, follow these steps:
 
