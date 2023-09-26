@@ -1,41 +1,71 @@
 # J1939-Utils
-Python utilities for interacting with J1939 and J1939 networks
 
+Python utilities for interacting with J1939 and J1939 networks.
 
+## Description
 
+J1939-Utils is a collection of Python utilities designed to facilitate communication and analysis within J1939 networks. J1939 is a protocol suite commonly used in heavy-duty vehicles, providing a standardized way for electronic control units (ECUs) to communicate over a CAN bus. These utilities aim to simplify tasks such as message filtering, streaming, and graphing, making it easier to work with J1939 networks.
 
-#### Notes:
-I like the candump format for logs and messages therefor most of these utils use it in some form. Candump is roughly as follows:
+## Table of Contents
 
-(timestamp as float) channel can_id#data
+- [Current Utilities](#current-utilities)
+  - [get_pgns.py](#get_pgns.py)
+  - [stream_msgs.py](#stream_msgs.py)
+  - [graph_log.py](#graph_log.py)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Example 1: Filtering Messages by PGN](#example-1-filtering-messages-by-pgn)
+  - [Example 2: Streaming Messages](#example-2-streaming-messages)
+  - [Example 3: Graphing Messages](#example-3-graphing-messages)
+- [Configuration](#configuration)
+- [Notes](#notes)
+- [License](#license)
 
-example: 
-(1553794338.014188) vcan0 0C20130B#FCFFFA77FFFFFFFF
+## current utilies:
 
+### `get_pgns.py`
 
-## Current utilies:
+This utility filters messages in a candump file by Parameter Group Number (PGN) and prints them to the standard output.
+
+**Standard Usage:**
+
+```sh
+get_pgns.py log1.candump 61440
+```
 
 ### stream_msgs.py
 
-This utility streams recived messages on a bus to stdout in candump format.  It can either be attached to a virtual bus or to a pcan adapter currently.
+This utility streams received messages on a bus to the standard output in candump format. It can be attached to a virtual bus or a PCAN adapter.
 
-standard usage: `python stream_msgs.py pcan` streams the recived messages from a connected pcan adaptor.  
+**Standard Usage:**
 
-to save to a log file:  `python stream_msgs.py pcan > log1.candump`
+```sh
+python stream_msgs.py pcan
+```
+
+to save to a log file:
+
+```sh
+python stream_msgs.py pcan > log1.candump
+```
 
 ### graph_log.py
 
-This utility graphs the messages in a log file by address.  It can also print out messages that contain a pgn of interest for quick looks at groups of messages.  It depends on the messages collection of parsers so it should be run from the cloned directory.
+This utility graphs messages in a log file by address and can also print out messages that contain specific PGNs of interest. It relies on a collection of parsers, so it should be run from the cloned directory.
 
-standard usage: `python graph_log.py path/to/candump 61440` <- list of pgns of interest seperated by spaces
+**Standard Usage:**
+
+```sh
+python graph_log.py path/to/candump 61440
+```
 
 Sample output:
 
-```
+```sh
 NAME messages seen by src address:
 {}
 
-Breakdown of messages in log     
+Breakdown of messages in log
 src     da      pgn     msg_count
 =================================
 0
@@ -59,52 +89,103 @@ src     da      pgn     msg_count
          |      |---- 3
 ```
 
-
-
 ## Instalation for use:
+
+To get started with J1939-Utils, follow these steps:
 
 ### 1) Set up the repo
 
-clone the repo: `git clone https://github.com/jLevere/J1939-Utils.git`
+`git clone https://github.com/jLevere/J1939-Utils.git`
 move into the repo `cd J1939-Utils`
 
 ### 2) Set up the virtual enviroment
 
-first we will create a virtual enviroment called venv:
+First, create a virtual environment called venv:
 
 `python -m venv venv`
 
-Then we will activate it:
+Then, activate it:
 
-Windows: `./venv/Scripts/activate.ps1` if you are using powershell
+- On Windows (PowerShell):
 
-Everything else: `./venv/bin/activate`
+```sh
+./venv/Scripts/activate.ps1
+```
 
-And now we need to install the required libraries:
+- On other platforms:
 
-`pip install -r requirements.txt`
+```sh
+./venv/bin/activate
+```
+
+Install the required libraries:
+
+```sh
+pip install -r requirements.txt
+```
 
 ### 3) Finish
 
-Everything should be finished, you can check for functionality by trying to start a virual listener with `python stream_msgs.py`
+Your setup should now be complete. You can verify functionality by trying to start a virtual listener with:
 
+```sh
+python stream_msgs.py
+```
 
 ## Usage:
 
-You probobly already know what you want to do with these tools but if you dont, lets capture some traffic from the pcan device and then graph its contents.
+Here are some common use cases for these tools:
 
-First we will capture some traffic:
+### Example 1: Filtering Messages by PGN
 
-`python stream_msgs.py pcan > ECU_CAN2_log1.candump`  
+You can use `get_pgns.py`` to filter messages in a candump file by PGN. For example, to filter messages with PGN 61440:
 
-I like to name my files with .candump to keep track of them better.  It is also good to name them with the name of the bus channel you are using so you dont forget as the channel tagging isnt the best
+```sh
+get_pgns.py log1.candump 61440
+```
 
-Now lets see what we got:
+### Example 2: Streaming Messages
 
-`python graph_log.py ECU_CAN2_log1.candump`
+To stream received messages from a PCAN adapter and save them to a log file
 
-This should print to stdout a nice graph of the messages seen on the bus as well as the NAME messages seen which can give you a decent idea of how many and what kind of controller applications are connected to the network.  Where a controler application is a particular function on the network.
+```sh
+python stream_msgs.py pcan > ECU_CAN2_log1.candump
+```
 
+### Example 3: Graphing Messages
 
+To graph messages in a log file and specify PGNs of interest:
 
+```sh
+python graph_log.py path/to/candump 61440 65235
+```
 
+Running this command will generate a comprehensive graph in the standard output, providing insights into the messages observed on the bus. It also identifies NAME messages, giving you valuable information about the number and types of controller applications connected to the network. In this context, a controller application refers to a specific network function.
+
+## Configuration
+
+To configure `get_pgns.py`, you can utilize a `get_pgns.conf` file, which should follow a JSON structure with two essential fields: `path` and `pgns`. This configuration file simplifies repeated usage.
+
+**Example `get_pgns.conf`:**
+
+```json
+{
+  "path": "log1.candump",
+  "pgns": [61440, 61447]
+}
+```
+
+In this example, the `path` field specifies the file path, and the `pgns` field contains an array of PGNs to filter for.
+
+## Notes:
+
+I like the candump format for logs and messages therefor most of these utils use it in some form. Candump is roughly as follows:
+
+(timestamp as float) channel can_id#data
+
+example:
+(1553794338.014188) vcan0 0C20130B#FCFFFA77FFFFFFFF
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
