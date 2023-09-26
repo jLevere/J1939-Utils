@@ -95,14 +95,18 @@ To get started with J1939-Utils, follow these steps:
 
 ### 1) Set up the repo
 
-`git clone https://github.com/jLevere/J1939-Utils.git`
-move into the repo `cd J1939-Utils`
+```sh
+git clone https://github.com/jLevere/J1939-Utils.git
+cd J1939-Utils
+```
 
 ### 2) Set up the virtual enviroment
 
 First, create a virtual environment called venv:
 
-`python -m venv venv`
+```sh
+python -m venv venv
+```
 
 Then, activate it:
 
