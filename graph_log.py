@@ -1,5 +1,6 @@
 import json
 import sys
+import os
 
 from messages.j1939id import J1939ID as ID
 
@@ -14,12 +15,12 @@ def get_msgs(path: str) -> list[tuple]:
     """
 
     messages: list[tuple] = []
-    with open(path, 'r', encoding='UTF-8') as f:
+    with open(path, "r", encoding="UTF-8") as f:
         for line in f:
             line = line.strip()
-            time, channel, message = line.split(' ')
+            time, channel, message = line.split(" ")
 
-            time = time.replace(')', '').replace('(', '').strip()
+            time = time.replace(")", "").replace("(", "").strip()
             time = float(time)
 
             can_id, data = message.split("#")
@@ -57,8 +58,9 @@ def seperate_by_address(messages: list[tuple]) -> dict:
         if str(can_id.pgn) not in src_dict[str(can_id.sa)][str(can_id.da)]:
             src_dict[str(can_id.sa)][str(can_id.da)][str(can_id.pgn)] = []
 
-        src_dict[str(can_id.sa)][str(can_id.da)][str(can_id.pgn)
-                                                 ].append(f"{str(can_id.hex)}#{data}")
+        src_dict[str(can_id.sa)][str(can_id.da)][str(can_id.pgn)].append(
+            f"{str(can_id.hex)}#{data}"
+        )
 
     return src_dict
 
@@ -87,7 +89,7 @@ def get_names(messages: list[tuple]) -> dict:
     return names_by_src
 
 
-def validate_path(path:str) -> bool:
+def validate_path(path: str) -> bool:
     """Check that there is a file and it can be read
 
     Args:
@@ -96,19 +98,10 @@ def validate_path(path:str) -> bool:
     Returns:
         bool: file is ready
     """
-    try:
-        with open(path, 'r') as f:
-            _ = f.readline()
-        return True
-    except FileNotFoundError:
-        print("file not found, please try again")
-        return False
-    except Exception as e:
-        print(f"something is wrong: {e}")
-        return False
+    return os.path.isfile(path) and os.access(path, os.R_OK)
 
 
-def main(path:str, pgns_of_interest:list[str]):
+def main(path: str, pgns_of_interest: list[str]):
     """Main
 
     Args:
@@ -116,52 +109,42 @@ def main(path:str, pgns_of_interest:list[str]):
         pgns_of_interest (list[str]): list of pgns to print
     """
 
-    messages:list[tuple] = get_msgs(path)
-    names:dict = get_names(messages)
-    
-    messages_by_src:dict = seperate_by_address(messages)
+    messages: list[tuple] = get_msgs(path)
+    names: dict = get_names(messages)
 
+    messages_by_src: dict = seperate_by_address(messages)
 
-    print(
-        f"NAME messages seen by src address:\n{json.dumps(names, indent=4)}\n")
+    print(f"NAME messages seen by src address:\n{json.dumps(names, indent=4)}\n")
 
     print("Breakdown of messages in log")
     print("src\tda\tpgn\tmsg_count")
     print("=================================")
 
     for src, da_dict in messages_by_src.items():
-
         print(f"{src}")
         print("|-------|")
 
         for da, pgn_dict in da_dict.items():
-
             print(f"\t{da}\n\t |")
 
             for pgn, msg_list in pgn_dict.items():
-
                 print(f"\t |--- {pgn}\n\t |\t|---- {len(msg_list)}")
 
                 if str(pgn) in pgns_of_interest:
                     print(msg_list)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    _path = sys.argv[1] if len(sys.argv) > 1 else None
+    _pgns_of_interest = sys.argv[2:] if len(sys.argv) > 2 else []
 
-    path = sys.argv[1] if len(sys.argv) > 1 else None
-    pgns_of_interest = sys.argv[2:] if len(sys.argv) > 2 else []
-
-    if not path:
-        path = input("please enter path to candump format log: ")
-        
-        if not validate_path(path):
-            sys.exit()
-            
-        pgn_str = input("enter pgns of interest seperated by spaces else enter: ")
-        pgns_of_interest = pgn_str.split(" ")
+    if not _path:
+        _path = input("please enter path to candump format log: ")
+        pgn_str = input("enter pgns of interest seperated by spaces, else enter: ")
+        _pgns_of_interest = pgn_str.split(" ")
         print("\n")
 
-    if not validate_path(path): #TODO: should be fixed to be non redudant
-        sys.exit()
-        
-    main(path, pgns_of_interest)
+    if not validate_path(_path):
+        raise SystemExit(f"was unable to open file at: {_path}")
+
+    main(_path, _pgns_of_interest)
