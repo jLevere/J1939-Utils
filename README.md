@@ -9,9 +9,9 @@ J1939-Utils is a collection of Python utilities designed to facilitate communica
 ## Table of Contents
 
 - [Current Utilities](#current-utilities)
-  - [get_pgns.py](#get_pgns.py)
-  - [stream_msgs.py](#stream_msgs.py)
-  - [graph_log.py](#graph_log.py)
+  - [get_pgns.py](#get_pgnspy)
+  - [stream_msgs.py](#stream_msgspy)
+  - [graph_log.py](#graph_logpy)
 - [Installation](#installation)
 - [Usage](#usage)
   - [Example 1: Filtering Messages by PGN](#example-1-filtering-messages-by-pgn)
