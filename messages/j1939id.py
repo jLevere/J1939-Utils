@@ -1,20 +1,53 @@
 from bitarray import bitarray
 from bitarray.util import ba2hex, int2ba, ba2int
 
+from typing import Optional
 
-class J1939ID():
+
+class J1939ID:
     """J1939 PDU ID
 
-    CBFF and CEFF messages are both handled.  CBFF only has a priority and a source address field.
+    CBFF and CEFF messages are both handled.  CBFF only has
+    a priority and a source address field.
 
     J1939 is comprised of two CAN messages types:
-        - CEFF messages are required by J1939 spec and defined in J1939-21
-        - CBFF (Classical Base Frame Format) messages are generally proprietary and also defined in J1939-21
+        - CEFF messages are required by J1939 spec and
+            defined in J1939-21
+        - CBFF (Classical Base Frame Format) messages are
+            generally proprietary and also defined in J1939-21
 
     The overall PDU should be described as hex but all the fields as ints.
     """
 
-    def __init__(self, can_id: str = None, cbff: bool = False):
+    def __init__(
+        self,
+        can_id: str = "",
+        priority: int = 3,
+        pgn: int = 0,
+        sa: int = 0,
+        da: int = 0,
+        cbff: bool = False,
+    ):
+        """J1939 Can ID in either cbff or ceff format.
+
+        Values can be set directly in the consturctor call.
+        If pgn sets the dest addr, then it will not accept new dest addrs,
+        For example, pdu type 2 pgns.
+
+        The priority defaults to 3, which should be fine for most things.
+
+        WARNING, if a PGN is type 2, initalising with a different dest address
+        will be ignored, BE AWARE.
+
+        Args:
+            priority (int, optional): msg priority. Defaults to 3.
+            pgn (int, optional): paramiter group number. Defaults to 0.
+            sa (int, optional): source addr. Defaults to 0.
+            da (int, optional): dest addr. Defaults to 0.
+            can_id (str, optional): full value in hex. Defaults to None.
+            cbff (bool, optional): classical base frame format. Defaults to False
+
+        """
         self._cbff = cbff
 
         if not can_id:
@@ -24,13 +57,22 @@ class J1939ID():
             else:
                 self._can_id = bitarray(29)
                 self._can_id[:] = False  # set all to 0
+
+            self.priority = priority
+            self.pgn = pgn
+            self.sa = sa
+
+            if self.type == 1:
+                self.da = da
+
         else:
-            if int(can_id, 16) > 0x1fffffff:  # make sure incoming data isn't longer than 29 bits
-                raise ValueError(
-                    f"can_id: {can_id}, data must be 29bits or less")
+            if (
+                int(can_id, 16) > 0x1FFFFFFF
+            ):  # make sure incoming data isn't longer than 29 bits
+                raise ValueError(f"can_id: {can_id}, data must be 29bits or less")
 
             # this is a CBFF message ID with an 11bit can_id
-            if len(can_id) <= 4 and int(can_id, 16) <= 0x7ff:
+            if len(can_id) <= 4 and int(can_id, 16) <= 0x7FF:
                 self._cbff = True
                 self._can_id = int2ba(int(can_id, 16), 11)
             else:
@@ -55,12 +97,13 @@ class J1939ID():
         Raises:
             ValueError: canid is to large
         """
-        if value[:2] == '0x':  # make sure that 0x doesn't mess it up
+        if value[:2] == "0x":  # make sure that 0x doesn't mess it up
             value = value[2:]
 
         if len(value) > 8:  # if something is grossly wrong reject it
             raise ValueError(
-                f"{value} is not valid canid, too long with len: {len(value)}")
+                f"{value} is not valid canid, too long with len: {len(value)}"
+            )
 
         if self._cbff:
             self._can_id = int2ba(int(value, 16), 11)
@@ -86,84 +129,123 @@ class J1939ID():
         self._can_id[:3] = int2ba(value, length=3)
 
     @property
-    def edp(self) -> int:
+    def edp(self) -> Optional[int]:
         """returns extended data page as int
 
+        Raises:
+            ValueError: raises if used on CPFF
+
         Returns:
-            int: extended data page
+            Optional[int, None]: extended data page
         """
         if not self._cbff:
             return int((self._can_id[3:4]).to01(), 2)
+
+        raise ValueError("EDP only on CEFF packets")
 
     @edp.setter
     def edp(self, value: int) -> None:
         """set extended data page from int
 
+        Raises:
+            ValueError: raises if used on CPFF
+
         Args:
-            value (int): extended data page
+            int: extended data page
         """
         if not self._cbff:
             self._can_id[3:4] = int2ba(value, 1)
+            return None
+        raise ValueError("EDP only on CEFF packets")
 
     @property
-    def dp(self) -> int:
+    def dp(self) -> Optional[int]:
         """return data page as int
 
+        Raises:
+            ValueError: raises if used on CPFF
+
         Returns:
-            int: data page
+            Optional[int, None]: data page
         """
         if not self._cbff:
             return int((self._can_id[4:5]).to01(), 2)
+        raise ValueError("DP only on CEFF packets")
 
     @dp.setter
     def dp(self, value: int) -> None:
         """set data page from int
+
+        Raises:
+            ValueError: raises if used on CPFF
 
         Args:
             value (int): data page
         """
         if not self._cbff:
             self._can_id[4:5] = int2ba(value, 1)
+            return None
+        raise ValueError("DP only on CEFF packets")
 
     @property
-    def pf(self) -> int:
+    def pf(self) -> Optional[int]:
         """return protocol data unit format (pdu format) as int
 
+        Raises:
+            ValueError: raises if used on CPFF
+
         Returns:
-            int: pdu format
+            Optional[int, None]: pdu format
         """
         if not self._cbff:
             return int((self._can_id[5:13]).to01(), 2)
+        raise ValueError("PF only on CEFF packets")
 
     @pf.setter
     def pf(self, value: int) -> None:
         """set pdu format from int
+
+        Raises:
+            ValueError: raises if used on CPFF
 
         Args:
             value (int): pdu format
         """
         if not self._cbff:
             self._can_id[5:13] = int2ba(value, 8)
+            return None
+        raise ValueError("PF only on CEFF packets")
 
     @property
-    def ps(self) -> int:
+    def ps(self) -> Optional[int]:
         """return pdu specific as int
 
+        Raises:
+            ValueError: raises if used on CPFF
+
         Returns:
-            int: pdu specific
+            Optional[int, None]: pdu specific
         """
         if not self._cbff:
             return ba2int(self._can_id[13:21])
 
+        raise ValueError("PS only on CEFF packets")
+
     @ps.setter
     def ps(self, value: int) -> None:
         """set protocol data unit specific (pdu specific) from int
+
+        Raises:
+            ValueError: raises if used on CPFF
 
         Args:
             value (int): pdu specific
         """
         if not self._cbff:
             self._can_id[13:21] = int2ba(value, 8)
+            return None
+
+        raise ValueError("PS only on CEFF packets")
 
     @property
     def sa(self) -> int:
@@ -190,26 +272,29 @@ class J1939ID():
             self._can_id[3:11] = int2ba(value, 8)
 
     @property
-    def da(self) -> int:
+    def da(self) -> Optional[int]:
         """return destination address as int.
         if type 1, return ps
         if type 2, return global da 255
 
         Returns:
-            int: destination
+            Optional[int, None]: destination
         """
         if not self._cbff:
             if self.type == 1:
                 return self.ps
             else:
-                return int("0xFF", 16)
+                return 255
+        return None
 
     @da.setter
     def da(self, value: int) -> None:
         """set the destination address from int.
 
-        If PDU is type 2 then the dest addr is understood to be global and the field is used to identify the pgn.
-        So, if you change it you will alter the PGN.  Method will not stop you but will print a warning.
+        If PDU is type 2 then the dest addr is understood to be global
+        and the field is used to identify the pgn.
+        So, if you change it you will alter the PGN.  Method will not stop you
+        but will print a warning.
 
         Args:
             value (int): destination address
@@ -219,15 +304,19 @@ class J1939ID():
                 self.ps = value
             else:
                 print(
-                    f"WARN: {__class__} setting the dest address when in pdu type 2 will alter the PGN. Contenuing anyway.")
+                    f"WARN: {self.__class__} setting the dest address when in pdu type 2 will alter the PGN. Contenuing anyway."
+                )
                 self.ps = value
+            return None
+
+        raise ValueError("DA only on CEFF")
 
     @property
-    def pgn(self) -> int:
+    def pgn(self) -> Optional[int]:
         """return parameter group number as int
 
         Returns:
-            int: parameter group number
+            Optional[int, None]: parameter group number
         """
         # 6*b'0' + edp, dp, pf + if pf < 240: + 8d'0' else + ps
         if not self._cbff:
@@ -245,6 +334,8 @@ class J1939ID():
                 pgn_bits[16:24] = int2ba(self.ps, 8)
             return ba2int(pgn_bits)
 
+        raise ValueError("pgn only on CEFF packet")
+
     @pgn.setter
     def pgn(self, value: int) -> None:
         """set pgn from int.
@@ -259,6 +350,11 @@ class J1939ID():
             self._can_id[4:5] = pgn_bits[7:8]  # dp
             self._can_id[5:13] = pgn_bits[8:16]  # pf
             self._can_id[13:21] = pgn_bits[16:24]  # ps
+
+        if self.pgn != value:
+            raise ValueError(
+                f"the pgn requested {value} is not in a valid range. Please consult j1939-21"
+            )
 
     ################# utilities #############################
 
@@ -283,7 +379,7 @@ class J1939ID():
         }
 
         if self._cbff:
-            rep['id_type'] = "cbff"
+            rep["id_type"] = "cbff"
         return rep
 
     @property
@@ -330,10 +426,11 @@ class J1939ID():
             int: protocol data unit type
         """
         if not self._cbff:
-            if self.pf < 240:
+            if self.pf and self.pf < 240:
                 return 1
             else:
                 return 2
+        raise ValueError("type only on CEFF packets")
 
     @property
     def cbff(self) -> bool:
@@ -344,14 +441,26 @@ class J1939ID():
         """
         return self._cbff
 
+    def string(self) -> str:
+        """returns human readable representation of the object.
+
+        (while some of the comonents like self.da can return None, the should
+        only return None when CBFF.  So the Nones dont matter)
+
+        Returns:
+            str: string
+        """
+        if not self._cbff:
+            return f"{self.hex}    {self.priority:02d} {self.pgn:05d} {self.sa:02d} --> {self.da:02d}"
+        return f"{self.hex}    {self.priority:02d} cbff {self.sa:02d} --> None"
+
     ####################### builtins ##########################
 
     def __repr__(self) -> str:
-        return str(self.hex)
+        return self.__str__()
 
     def __str__(self) -> str:
-        if not self._cbff:
-            return "{}    {:02d} {:05d} {:02d} --> {:02d}".format(self.hex, self.priority, self.pgn,
-                                                                  self.sa, self.da)
-        else:
-            return "{}    {:02d} cbff {:02d} --> None".format(self.hex, self.priority, self.sa)
+        return self.hex
+
+    def __eq__(self, __o: object) -> bool:
+        return self.hex == __o.hex
